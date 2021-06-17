@@ -1,17 +1,25 @@
 const express = require('express');
 const path = require('path');
-const axios = require('axios');
-const database = require('../database/index');
-const sleeper = require('../helpers/sleeper');
+const Database = require('../database/index');
+const Sleeper = require('./helpers/sleeper');
+const GetLeague = require('./helpers/routes/leagues');
+const GetMatchups = require('./helpers/routes/matchups');
+const GetRosters = require('./helpers/routes/rosters');
+const GetUsers = require('./helpers/routes/users');
 
 const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'build')));
 
-app.get('/user', (req, res) => {
-  const leagueID = 519340293031415808;
-  sleeper
-    .getUsers(leagueID)
+const leagueID = '519340293031415808';
+
+app.get('/updateSleeper', (req, res) => {
+  Sleeper.getData(leagueID);
+
+});
+
+/* app.get('/user', (req, res) => {
+  Sleeper.getUsers(leagueID)
     .then((userInfo) => {
       userInfo.forEach((user) => {
         const document = new database.User({
@@ -61,7 +69,6 @@ app.get('/test', (req, res) => {
 });
 
 app.get('/rosters', (req, res) => {
-  const leagueID = 519340293031415808;
   sleeper
     .getRosters(leagueID)
     .then((rosterInfo) => {
@@ -94,7 +101,6 @@ app.get('/rosters', (req, res) => {
 });
 
 app.get('/league', (req, res) => {
-  const leagueID = 519340293031415808;
   sleeper
     .getLeagueInfo(leagueID)
     .then((leagueInfo) => {
@@ -105,6 +111,7 @@ app.get('/league', (req, res) => {
           divisionName2: league.metadata.division_2,
           divisionAvatar1: league.metadata.division_1_avatar,
           divisionAvatar2: league.metadata.division_2_avatar,
+          season: season,
         });
         document.save((err, data) => {
           if (err) {
@@ -121,8 +128,19 @@ app.get('/league', (req, res) => {
     });
 });
 
+app.get('/league', (req, res) => {
+  sleeper
+    .getLeagueInfo(leagueID)
+    .then((data) => {
+      database.saveLeague(data);
+      res.status(200).json(data);
+    })
+    .catch((err) => {
+      res.status(500).json(err);
+    });
+});
+
 app.get('/matchups', (req, res) => {
-  const leagueID = 519340293031415808;
   for (let i = 1; i <= 17; i += 1) {
     const weekNum = i;
     sleeper
@@ -148,6 +166,6 @@ app.get('/matchups', (req, res) => {
         res.status(500).json(err);
       });
   }
-});
+}); */
 
 app.listen(process.env.PORT || 3005);
